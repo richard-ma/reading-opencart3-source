@@ -78,28 +78,30 @@ class Smtp {
 
 		$message .= '--' . $boundary . '--' . PHP_EOL;
 
+        # 可以使用tls://的形式指定发送邮件使用tls加密
 		if (substr($this->smtp_hostname, 0, 3) == 'tls') {
 			$hostname = substr($this->smtp_hostname, 6);
 		} else {
 			$hostname = $this->smtp_hostname;
 		}
 
+        # 打开和smtp服务器的socket通讯
 		$handle = fsockopen($hostname, $this->smtp_port, $errno, $errstr, $this->smtp_timeout);
 
 		if (!$handle) {
-			throw new \Exception('Error: ' . $errstr . ' (' . $errno . ')');
+			throw new \Exception('Error: ' . $errstr . ' (' . $errno . ')'); # socket链接失败
 		} else {
 			if (substr(PHP_OS, 0, 3) != 'WIN') {
 				socket_set_timeout($handle, $this->smtp_timeout, 0);
 			}
 	
-			while ($line = fgets($handle, 515)) {
-				if (substr($line, 3, 1) == ' ') {
+            while ($line = fgets($handle, 515)) { # 每次读取515字节的数据
+				if (substr($line, 3, 1) == ' ') { # 读取数据结束
 					break;
 				}
 			}
 
-			fputs($handle, 'EHLO ' . getenv('SERVER_NAME') . "\r\n");
+			fputs($handle, 'EHLO ' . getenv('SERVER_NAME') . "\r\n"); # EHLO
 
 			$reply = '';
 
@@ -120,8 +122,8 @@ class Smtp {
 				throw new \Exception('Error: EHLO not accepted from server!');
 			}
 
-			if (substr($this->smtp_hostname, 0, 3) == 'tls') {
-				fputs($handle, 'STARTTLS' . "\r\n");
+			if (substr($this->smtp_hostname, 0, 3) == 'tls') { # tls加密模式
+				fputs($handle, 'STARTTLS' . "\r\n"); # STARTTLS
 
 				$reply = '';
 
@@ -140,8 +142,8 @@ class Smtp {
 				stream_socket_enable_crypto($handle, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
 			}
 
-			if (!empty($this->smtp_username)  && !empty($this->smtp_password)) {
-				fputs($handle, 'EHLO ' . getenv('SERVER_NAME') . "\r\n");
+			if (!empty($this->smtp_username)  && !empty($this->smtp_password)) { # 登陆服务器
+				fputs($handle, 'EHLO ' . getenv('SERVER_NAME') . "\r\n"); # EHLO
 
 				$reply = '';
 
@@ -157,7 +159,7 @@ class Smtp {
 					throw new \Exception('Error: EHLO not accepted from server!');
 				}
 
-				fputs($handle, 'AUTH LOGIN' . "\r\n");
+				fputs($handle, 'AUTH LOGIN' . "\r\n"); # AUTH LOGIN
 
 				$reply = '';
 
@@ -173,7 +175,7 @@ class Smtp {
 					throw new \Exception('Error: AUTH LOGIN not accepted from server!');
 				}
 
-				fputs($handle, base64_encode($this->smtp_username) . "\r\n");
+				fputs($handle, base64_encode($this->smtp_username) . "\r\n"); # 上传用户名
 
 				$reply = '';
 
@@ -189,7 +191,7 @@ class Smtp {
 					throw new \Exception('Error: Username not accepted from server!');
 				}
 
-				fputs($handle, base64_encode($this->smtp_password) . "\r\n");
+				fputs($handle, base64_encode($this->smtp_password) . "\r\n"); # 上传密码
 
 				$reply = '';
 
@@ -204,8 +206,8 @@ class Smtp {
 				if (substr($reply, 0, 3) != 235) {
 					throw new \Exception('Error: Password not accepted from server!');
 				}
-			} else {
-				fputs($handle, 'HELO ' . getenv('SERVER_NAME') . "\r\n");
+			} else { # 无需登陆
+				fputs($handle, 'HELO ' . getenv('SERVER_NAME') . "\r\n"); # HELO
 
 				$reply = '';
 
@@ -222,6 +224,7 @@ class Smtp {
 				}
 			}
 
+            # MAIL
 			if ($this->verp) {
 				fputs($handle, 'MAIL FROM: <' . $this->from . '>XVERP' . "\r\n");
 			} else {
@@ -242,7 +245,8 @@ class Smtp {
 				throw new \Exception('Error: MAIL FROM not accepted from server!');
 			}
 
-			if (!is_array($this->to)) {
+            # RCPT
+			if (!is_array($this->to)) { # 只有一个收件人
 				fputs($handle, 'RCPT TO: <' . $this->to . '>' . "\r\n");
 
 				$reply = '';
@@ -258,7 +262,7 @@ class Smtp {
 				if ((substr($reply, 0, 3) != 250) && (substr($reply, 0, 3) != 251)) {
 					throw new \Exception('Error: RCPT TO not accepted from server!');
 				}
-			} else {
+			} else { # 多个收件人
 				foreach ($this->to as $recipient) {
 					fputs($handle, 'RCPT TO: <' . $recipient . '>' . "\r\n");
 
@@ -278,7 +282,7 @@ class Smtp {
 				}
 			}
 
-			fputs($handle, 'DATA' . "\r\n");
+			fputs($handle, 'DATA' . "\r\n"); # DATA
 
 			$reply = '';
 
@@ -312,7 +316,7 @@ class Smtp {
 				}
 			}
 
-			fputs($handle, '.' . "\r\n");
+			fputs($handle, '.' . "\r\n"); # 结束DATA
 
 			$reply = '';
 
@@ -328,7 +332,7 @@ class Smtp {
 				throw new \Exception('Error: DATA not accepted from server!');
 			}
 
-			fputs($handle, 'QUIT' . "\r\n");
+			fputs($handle, 'QUIT' . "\r\n"); # QUIT
 
 			$reply = '';
 

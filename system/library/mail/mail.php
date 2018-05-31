@@ -1,4 +1,5 @@
 <?php
+# 发送邮件适配器mail
 namespace Mail;
 class Mail {
 	public function send() {
@@ -71,6 +72,7 @@ class Mail {
 
 		ini_set('sendmail_from', $this->from);
 
+        # 使用php的mail函数进行发送
 		if ($this->parameter) {
 			mail($to, '=?UTF-8?B?' . base64_encode($this->subject) . '?=', $message, $header, $this->parameter);
 		} else {

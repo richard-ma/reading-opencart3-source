@@ -7,6 +7,9 @@
  * @link		https://www.opencart.com
 */
 
+# 实现了邮件的发送功能，直接实现了一个smtp客户端
+# smtp文档参见rfc861
+
 /**
 * Mail class
 */
@@ -27,6 +30,9 @@ class Mail {
 	 * @param	string	$adaptor
 	 *
  	*/
+    # $this->adaptor发送邮件的适配器目前有两个
+    #   mail使用php提供的mail函数进行发送
+    #   smtp使用opencart编写的smtp客户端进行发送
 	public function __construct($adaptor = 'mail') {
 		$class = 'Mail\\' . $adaptor;
 		
@@ -114,6 +120,7 @@ class Mail {
      * 
      *
      */
+    # 发送邮件方法
 	public function send() {
 		if (!$this->to) {
 			throw new \Exception('Error: E-Mail to required!');
@@ -139,6 +146,7 @@ class Mail {
 			$this->adaptor->$key = $value;
 		}
 		
+        # 使用适配器进行发送
 		$this->adaptor->send();
 	}
 }
