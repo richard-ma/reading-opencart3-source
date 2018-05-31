@@ -87,6 +87,7 @@ spl_autoload_register('library'); // 注册自动加载函数
 spl_autoload_extensions('.php'); // 搜寻文件的扩展名
 
 // Engine
+// 加载engine文件
 require_once(modification(DIR_SYSTEM . 'engine/action.php'));
 require_once(modification(DIR_SYSTEM . 'engine/controller.php'));
 require_once(modification(DIR_SYSTEM . 'engine/event.php'));
@@ -97,6 +98,7 @@ require_once(modification(DIR_SYSTEM . 'engine/registry.php'));
 require_once(modification(DIR_SYSTEM . 'engine/proxy.php'));
 
 // Helper
+// 加载helper文件
 require_once(DIR_SYSTEM . 'helper/general.php');
 require_once(DIR_SYSTEM . 'helper/utf8.php');
 
